@@ -1,0 +1,15 @@
+[submodule "repos/fdk-aac"]
+	path = repos/fdk-aac
+	url = https://github.com/mstorsjo/fdk-aac.git
+[submodule "repos/openssl"]
+	path = repos/openssl
+	url = https://github.com/openssl/openssl
+[submodule "repos/x264"]
+	path = repos/x264
+	url = https://code.videolan.org/videolan/x264.git
+[submodule "repos/x265"]
+	path = repos/x265
+	url = https://bitbucket.org/multicoreware/x265_git.git
+[submodule "repos/FFmpeg"]
+	path = repos/FFmpeg
+	url = https://github.com/FFmpeg/FFmpeg.git
