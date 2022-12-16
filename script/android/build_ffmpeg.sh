@@ -174,7 +174,12 @@ build_all() {
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=hevc"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=hls"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=mpegts"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=flv"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=flv"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=dash"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=live_flv"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=m4v"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=matroska"
+  
 
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-parser=aac"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-parser=h264"
@@ -185,9 +190,14 @@ build_all() {
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=hls"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=http"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=https"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=rtmp"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tcp"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tls"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=rtmp"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tcp"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tls"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=srtp"
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=udp"
+
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-bsf=h264_mp4toannexb"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-bsf=hevc_mp4toannexb"
 
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-openssl"
 
@@ -195,13 +205,12 @@ build_all() {
   echo "PREFIX=$PREFIX"
   echo "CONFIG_LOG_PATH=$CONFIG_LOG_PATH"
   mkdir -p ${CONFIG_LOG_PATH}
-  # build "armeabi-v7a"
+  build "armeabi-v7a"
   build "arm64-v8a"
-  # build "x86"
+  build "x86"
   build "x86_64"
 }
 
 echo "-------- Start --------"
 build_all
 echo "-------- End --------"
-

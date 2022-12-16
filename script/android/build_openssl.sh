@@ -94,128 +94,37 @@ build() {
   make clean
 
   echo "-------- > Start build configuration"
-  CONFIGURATION="$COMMON_OPTIONS"
-  CONFIGURATION="$CONFIGURATION --logfile=$CONFIG_LOG_PATH/config_$APP_ABI.log"
-  CONFIGURATION="$CONFIGURATION --prefix=$PREFIX"
-  CONFIGURATION="$CONFIGURATION --libdir=$PREFIX/libs/$APP_ABI"
-  CONFIGURATION="$CONFIGURATION --incdir=$PREFIX/includes/$APP_ABI"
-  CONFIGURATION="$CONFIGURATION --pkgconfigdir=$PREFIX/pkgconfig/$APP_ABI"
-  CONFIGURATION="$CONFIGURATION --pkg-config=pkg-config"
-  CONFIGURATION="$CONFIGURATION --cross-prefix=$CROSS_PREFIX"
-  CONFIGURATION="$CONFIGURATION --arch=$ARCH"
-  CONFIGURATION="$CONFIGURATION --sysroot=$SYSROOT"
-  CONFIGURATION="$CONFIGURATION --cc=$CC"
-  CONFIGURATION="$CONFIGURATION --cxx=$CXX"
-  CONFIGURATION="$CONFIGURATION --as=$CC"
-  CONFIGURATION="$CONFIGURATION --ld=$CC"
-  CONFIGURATION="$CONFIGURATION --enable-pic"
-  #tools
-  CONFIGURATION="$CONFIGURATION --ranlib=$TOOLCHAINS/bin/llvm-ranlib"
-  CONFIGURATION="$CONFIGURATION --ar=$TOOLCHAINS/bin/llvm-ar"
-  CONFIGURATION="$CONFIGURATION --nm=$TOOLCHAINS/bin/llvm-nm"
-  CONFIGURATION="$CONFIGURATION --strip=$TOOLCHAINS/bin/llvm-strip"
-  CONFIGURATION="$CONFIGURATION $EXTRA_OPTIONS"
 
-  # echo "-------- > Start config makefile with $CONFIGURATION --extra-cflags=${EXTRA_CFLAGS} --extra-ldflags=${EXTRA_LDFLAGS}"
-  # ./configure ${CONFIGURATION} \
-  # --extra-cflags="$EXTRA_CFLAGS" \
-  # --extra-ldflags="$EXTRA_LDFLAGS"
-  echo "-------- > Start config OPENSSL $OPENSSL_OS"
   export PATH=$TOOLCHAINS/bin:$PATH
-  export CC="$TOOLCHAINS/bin/$TARGET$API-clang"
+  export CC=$CC
+  export CXX=$CXX
   export RANLIB="$TOOLCHAINS/bin/llvm-ranlib"
   export AR="$TOOLCHAINS/bin/llvm-ar"
+  export ANDROID_API=$API
 
-  #./Configure $OPENSSL_OS --prefix=$PREFIX --libdir=$PREFIX/libs/$APP_ABI
-  ./Configure $OPENSSL_OS --prefix=$PREFIX/$APP_ABI
+  echo "-------- > Start config OPENSSL $OPENSSL_OS"
+
+
+  #./Configure $OPENSSL_OS --prefix=$PREFIX/$APP_ABI -D__ANDROID_API__=$API no-shared
+  ./Configure $OPENSSL_OS --prefix=$PREFIX/$APP_ABI -U__ANDROID_API__ -D__ANDROID_API__=$API no-shared
+
+  echo "-------- > Start make $APP_ABI with -j16"
   make -j16
+  echo "++++++++ > make and install $APP_ABI complete."
+
+  echo "-------- > Start install $APP_ABI"
   make install
-
-
-  # echo "-------- > Start make $APP_ABI with -j16"
-  # make -j16
-
-  # echo "-------- > Start install $APP_ABI"
-  # make install
-  # echo "++++++++ > make and install $APP_ABI complete."
-
-  # echo "-------- > Generate libffmpeg.so"
-  # pushd $PREFIX/libs/$APP_ABI
-  # $CC $CFLAGS -shared -o libffmpeg.so -Wl,--whole-archive -Wl,-Bsymbolic \
-  # libavcodec.a libavformat.a libswresample.a libavfilter.a libavutil.a libswscale.a -Wl,--no-whole-archive
-
-  # popd
-  # echo "++++++++ > Generate $APP_ABI/libffmpeg.so complete."
+  echo "++++++++ > make and install $APP_ABI complete."
 
 }
 
 build_all() {
-  #gpl support
-  #COMMON_OPTIONS="$COMMON_OPTIONS --enable-gpl"
-  #target android
-  COMMON_OPTIONS="$COMMON_OPTIONS --target-os=android"
-  
-  #COMMON_OPTIONS="$COMMON_OPTIONS --disable-static"
-  #COMMON_OPTIONS="$COMMON_OPTIONS --enable-shared"
-  
-  
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-cross-compile"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-optimizations"
-
-  #debug option
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-debug"
-
-  #disable
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-doc"
-
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-programs"
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-vulkan"
-
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-avdevice"
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-postproc"
-
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-everything"
-
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=aac"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=mp3"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=h264"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=hevc"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=flv"
-
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=aac"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=mp3"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=mov"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=hevc"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=hls"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=mpegts"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-demuxer=flv"
-
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-parser=aac"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-parser=h264"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-parser=mpegaudio"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-parser=hevc"
-
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=file"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=hls"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=http"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=https"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=rtmp"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tcp"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tls"
-
-  #COMMON_OPTIONS="$COMMON_OPTIONS --enable-openssl"
-
-  echo "COMMON_OPTIONS=$COMMON_OPTIONS"
-  echo "PREFIX=$PREFIX"
-  echo "CONFIG_LOG_PATH=$CONFIG_LOG_PATH"
-  mkdir -p ${CONFIG_LOG_PATH}
-  # build "armeabi-v7a"
+  build "armeabi-v7a"
   build "arm64-v8a"
-  # build "x86"
+  build "x86"
   build "x86_64"
 }
 
 echo "-------- Start --------"
 build_all
 echo "-------- End --------"
-
