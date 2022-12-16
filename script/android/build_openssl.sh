@@ -9,10 +9,10 @@ if [ "${ANDROID_NDK}" == "" ]; then
   exit 1;
 fi
 
-export FFMPEG_REPO_PATH=${REPO_PATH}/ffmpeg-5.1.2
+export OPENSSL_REPO_PATH=${REPO_PATH}/openssl-1.1.1s
 export DIST_PATH=${ROOT_PATH}/dist
 
-cd ${FFMPEG_REPO_PATH}
+cd ${OPENSSL_REPO_PATH}
 
 NDK_PATH=${ANDROID_NDK} # tag1
 # macOS $NDK_PATH/toolchains/llvm/prebuilt/
@@ -47,6 +47,7 @@ build() {
     EXTRA_CFLAGS="$CFLAG -mfloat-abi=softfp -mfpu=vfp -marm -march=$MARCH "
     EXTRA_LDFLAGS="$LDFLAG"
     EXTRA_OPTIONS="--enable-neon --cpu=$CPU "
+    OPENSSL_OS=android-arm
     ;;
   arm64-v8a)
     ARCH="aarch64"
@@ -57,6 +58,7 @@ build() {
     EXTRA_CFLAGS="$CFLAG"
     EXTRA_LDFLAGS="$LDFLAG"
     EXTRA_OPTIONS="--enable-neon"
+    OPENSSL_OS=android-arm64
     ;;
   x86)
     ARCH="x86"
@@ -67,9 +69,10 @@ build() {
     CXX="$TOOLCHAINS/bin/$TARGET$API-clang++"
     CROSS_PREFIX="$TOOLCHAINS/bin/$TARGET-"
     #EXTRA_CFLAGS="$CFLAG -march=$MARCH -mtune=intel -mssse3 -mfpmath=sse -m32"
-    EXTRA_CFLAGS="$CFLAG --arch=x86 -march=$MARCH  -mssse3 -mfpmath=sse -m32"
+    EXTRA_CFLAGS="$CFLAG -march=$MARCH  -mssse3 -mfpmath=sse -m32"
     EXTRA_LDFLAGS="$LDFLAG"
-    EXTRA_OPTIONS="--cpu=$CPU --disable-asm"
+    EXTRA_OPTIONS="--disable-asm"
+    OPENSSL_OS=android-x86
     ;;
   x86_64)
     ARCH="x86_64"
@@ -80,9 +83,10 @@ build() {
     CXX="$TOOLCHAINS/bin/$TARGET$API-clang++"
     CROSS_PREFIX="$TOOLCHAINS/bin/$TARGET-"
     #EXTRA_CFLAGS="$CFLAG -march=$CPU -mtune=intel -msse4.2 -mpopcnt -m64"
-    EXTRA_CFLAGS="$CFLAG --arch=x86_64 -march=$CPU -msse4.2 -mpopcnt -m64"
+    EXTRA_CFLAGS="$CFLAG -march=$CPU -msse4.2 -mpopcnt -m64"
     EXTRA_LDFLAGS="$LDFLAG"
-    EXTRA_OPTIONS="--cpu=$CPU --disable-asm"
+    EXTRA_OPTIONS="--disable-asm"
+    OPENSSL_OS=android-x86_64
     ;;
   esac
 
@@ -112,25 +116,36 @@ build() {
   CONFIGURATION="$CONFIGURATION --strip=$TOOLCHAINS/bin/llvm-strip"
   CONFIGURATION="$CONFIGURATION $EXTRA_OPTIONS"
 
-  echo "-------- > Start config makefile with $CONFIGURATION --extra-cflags=${EXTRA_CFLAGS} --extra-ldflags=${EXTRA_LDFLAGS}"
-  ./configure ${CONFIGURATION} \
-  --extra-cflags="$EXTRA_CFLAGS" \
-  --extra-ldflags="$EXTRA_LDFLAGS"
+  # echo "-------- > Start config makefile with $CONFIGURATION --extra-cflags=${EXTRA_CFLAGS} --extra-ldflags=${EXTRA_LDFLAGS}"
+  # ./configure ${CONFIGURATION} \
+  # --extra-cflags="$EXTRA_CFLAGS" \
+  # --extra-ldflags="$EXTRA_LDFLAGS"
+  echo "-------- > Start config OPENSSL $OPENSSL_OS"
+  export PATH=$TOOLCHAINS/bin:$PATH
+  export CC="$TOOLCHAINS/bin/$TARGET$API-clang"
+  export RANLIB="$TOOLCHAINS/bin/llvm-ranlib"
+  export AR="$TOOLCHAINS/bin/llvm-ar"
 
-  echo "-------- > Start make $APP_ABI with -j16"
+  #./Configure $OPENSSL_OS --prefix=$PREFIX --libdir=$PREFIX/libs/$APP_ABI
+  ./Configure $OPENSSL_OS --prefix=$PREFIX/$APP_ABI
   make -j16
-
-  echo "-------- > Start install $APP_ABI"
   make install
-  echo "++++++++ > make and install $APP_ABI complete."
 
-  echo "-------- > Generate libffmpeg.so"
-  pushd $PREFIX/libs/$APP_ABI
-  $CC $CFLAGS -shared -o libffmpeg.so -Wl,--whole-archive -Wl,-Bsymbolic \
-  libavcodec.a libavformat.a libswresample.a libavfilter.a libavutil.a libswscale.a -Wl,--no-whole-archive
 
-  popd
-  echo "++++++++ > Generate $APP_ABI/libffmpeg.so complete."
+  # echo "-------- > Start make $APP_ABI with -j16"
+  # make -j16
+
+  # echo "-------- > Start install $APP_ABI"
+  # make install
+  # echo "++++++++ > make and install $APP_ABI complete."
+
+  # echo "-------- > Generate libffmpeg.so"
+  # pushd $PREFIX/libs/$APP_ABI
+  # $CC $CFLAGS -shared -o libffmpeg.so -Wl,--whole-archive -Wl,-Bsymbolic \
+  # libavcodec.a libavformat.a libswresample.a libavfilter.a libavutil.a libswscale.a -Wl,--no-whole-archive
+
+  # popd
+  # echo "++++++++ > Generate $APP_ABI/libffmpeg.so complete."
 
 }
 
@@ -197,7 +212,7 @@ build_all() {
   # build "armeabi-v7a"
   build "arm64-v8a"
   # build "x86"
-  # build "x86_64"
+  build "x86_64"
 }
 
 echo "-------- Start --------"

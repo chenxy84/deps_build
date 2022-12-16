@@ -67,9 +67,9 @@ build() {
     CXX="$TOOLCHAINS/bin/$TARGET$API-clang++"
     CROSS_PREFIX="$TOOLCHAINS/bin/$TARGET-"
     #EXTRA_CFLAGS="$CFLAG -march=$MARCH -mtune=intel -mssse3 -mfpmath=sse -m32"
-    EXTRA_CFLAGS="$CFLAG --arch=x86 -march=$MARCH  -mssse3 -mfpmath=sse -m32"
+    EXTRA_CFLAGS="$CFLAG -march=$MARCH  -mssse3 -mfpmath=sse -m32"
     EXTRA_LDFLAGS="$LDFLAG"
-    EXTRA_OPTIONS="--cpu=$CPU --disable-asm"
+    EXTRA_OPTIONS="--disable-asm"
     ;;
   x86_64)
     ARCH="x86_64"
@@ -80,9 +80,9 @@ build() {
     CXX="$TOOLCHAINS/bin/$TARGET$API-clang++"
     CROSS_PREFIX="$TOOLCHAINS/bin/$TARGET-"
     #EXTRA_CFLAGS="$CFLAG -march=$CPU -mtune=intel -msse4.2 -mpopcnt -m64"
-    EXTRA_CFLAGS="$CFLAG --arch=x86_64 -march=$CPU -msse4.2 -mpopcnt -m64"
+    EXTRA_CFLAGS="$CFLAG -march=$CPU -msse4.2 -mpopcnt -m64"
     EXTRA_LDFLAGS="$LDFLAG"
-    EXTRA_OPTIONS="--cpu=$CPU --disable-asm"
+    EXTRA_OPTIONS=""
     ;;
   esac
 
@@ -92,10 +92,10 @@ build() {
   echo "-------- > Start build configuration"
   CONFIGURATION="$COMMON_OPTIONS"
   CONFIGURATION="$CONFIGURATION --logfile=$CONFIG_LOG_PATH/config_$APP_ABI.log"
-  CONFIGURATION="$CONFIGURATION --prefix=$PREFIX"
-  CONFIGURATION="$CONFIGURATION --libdir=$PREFIX/libs/$APP_ABI"
-  CONFIGURATION="$CONFIGURATION --incdir=$PREFIX/includes/$APP_ABI"
-  CONFIGURATION="$CONFIGURATION --pkgconfigdir=$PREFIX/pkgconfig/$APP_ABI"
+  CONFIGURATION="$CONFIGURATION --prefix=$PREFIX/$APP_ABI"
+  #CONFIGURATION="$CONFIGURATION --libdir=$PREFIX/libs/$APP_ABI"
+  #CONFIGURATION="$CONFIGURATION --incdir=$PREFIX/includes/$APP_ABI"
+  #CONFIGURATION="$CONFIGURATION --pkgconfigdir=$PREFIX/pkgconfig/$APP_ABI"
   CONFIGURATION="$CONFIGURATION --pkg-config=pkg-config"
   CONFIGURATION="$CONFIGURATION --cross-prefix=$CROSS_PREFIX"
   CONFIGURATION="$CONFIGURATION --arch=$ARCH"
@@ -113,6 +113,7 @@ build() {
   CONFIGURATION="$CONFIGURATION $EXTRA_OPTIONS"
 
   echo "-------- > Start config makefile with $CONFIGURATION --extra-cflags=${EXTRA_CFLAGS} --extra-ldflags=${EXTRA_LDFLAGS}"
+  export PKG_CONFIG_PATH=$PREFIX/$APP_ABI/lib/pkgconfig
   ./configure ${CONFIGURATION} \
   --extra-cflags="$EXTRA_CFLAGS" \
   --extra-ldflags="$EXTRA_LDFLAGS"
@@ -125,7 +126,7 @@ build() {
   echo "++++++++ > make and install $APP_ABI complete."
 
   echo "-------- > Generate libffmpeg.so"
-  pushd $PREFIX/libs/$APP_ABI
+  pushd $PREFIX/$APP_ABI/lib
   $CC $CFLAGS -shared -o libffmpeg.so -Wl,--whole-archive -Wl,-Bsymbolic \
   libavcodec.a libavformat.a libswresample.a libavfilter.a libavutil.a libswscale.a -Wl,--no-whole-archive
 
@@ -188,7 +189,7 @@ build_all() {
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tcp"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tls"
 
-  #COMMON_OPTIONS="$COMMON_OPTIONS --enable-openssl"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-openssl"
 
   echo "COMMON_OPTIONS=$COMMON_OPTIONS"
   echo "PREFIX=$PREFIX"
@@ -197,7 +198,7 @@ build_all() {
   # build "armeabi-v7a"
   build "arm64-v8a"
   # build "x86"
-  # build "x86_64"
+  build "x86_64"
 }
 
 echo "-------- Start --------"
