@@ -9,7 +9,10 @@ if [ "${ANDROID_NDK}" == "" ]; then
 	exit 1;
 fi
 
-export FFMPEG_REPO_PATH=${REPO_PATH}/ffmpeg-5.1.2
+ffmpeg_version=5.1.2
+#ffmpeg_version=4.1.10
+
+export FFMPEG_REPO_PATH=${REPO_PATH}/ffmpeg-${ffmpeg_version}
 export DIST_PATH=${ROOT_PATH}/dist
 
 cd ${FFMPEG_REPO_PATH}
@@ -136,8 +139,11 @@ build() {
 }
 
 build_all() {
-  #gpl support
-  #COMMON_OPTIONS="$COMMON_OPTIONS --enable-gpl"
+  COMMON_OPTIONS="$COMMON_OPTIONS --disable-gpl"
+  COMMON_OPTIONS="$COMMON_OPTIONS --disable-nonfree"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-runtime-cpudetect"
+
+
   #target android
   COMMON_OPTIONS="$COMMON_OPTIONS --target-os=android"
   
@@ -186,6 +192,7 @@ build_all() {
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-parser=mpegaudio"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-parser=hevc"
 
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocols"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=file"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=hls"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=http"
@@ -196,6 +203,7 @@ build_all() {
   # COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=srtp"
   # COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=udp"
 
+  # COMMON_OPTIONS="$COMMON_OPTIONS --enable-bsfs"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-bsf=h264_mp4toannexb"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-bsf=hevc_mp4toannexb"
 
